@@ -74,7 +74,7 @@ d_hex: ./debug/$(TARGET).elf
 	$(OBJCOPY) -O srec -R .eeprom -R .fuse -R .lock -R .signature -R .user_signatures ./debug/$(TARGET).elf ./debug/$(TARGET).srec
 
 upload:
-	avrdude -p m169 -c atmelice -U flash:w:$(BUILD_PATH)/main.hex -B 125kHz -U lfuse:w:0xFF:m -U hfuse:w:0x98:m -U efuse:w:0xCB:m -U lock:w:0x2F:m 
+	avrdude -p m169 -c atmelice -U flash:w:$(BUILD_PATH)/main.hex 
 
 clean:
 	@- rm -f *.o *.elf *.hex *.eep *.lss *.srec
