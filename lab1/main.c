@@ -19,22 +19,39 @@ void lcd_init(){
 
 
 // Raw thing sent to display
-//   MPND LEGC JFHB KXSA
-// 0b1001 0101 0101 1111
+//         MPND LEGC JFHB KXSA
+//       0b1001 0101 0101 1111
 
 // We store as     
 //         ABCD EFGH XJKL MNSP
 //bits = 0b1101 0100 1001 0010
 
-uint32_t segments_to_raw(uint32_t segments) {
-    return 0;
+uint16_t segments_to_raw(uint16_t segments) {
+
+    return 
+	    (segments & 0b1000000000000000) > 15 |
+	    (segments & 0b0100000000000000) > 10 |
+	    (segments & 0b0010000000000000) > 5  |
+	    (segments & 0b0001000000000000)      |
+	    (segments & 0b0000100000000000) > 1  |
+	    (segments & 0b0000010000000000) > 4  |
+	    (segments & 0b0000001000000000)      |
+	    (segments & 0b0000000100000000) < 3  |
+	    (segments & 0b0000000010000000) > 5  |
+	    (segments & 0b0000000001000000) < 1  |
+	    (segments & 0b1000000000100000) > 2  |
+	    (segments & 0b1000000000010000) < 7  |
+	    (segments & 0b1000000000001000) < 12 |
+	    (segments & 0b1000000000000100) < 11 |
+	    (segments & 0b1000000000000010)      |
+	    (segments & 0b1000000000000001) < 14;
 }
 
 typedef struct {
     char c;
     //         ABCD EFGH XJKL MNSP
     //bits = 0b1101 0100 1001 0010
-    uint32_t bits;
+    uint16_t bits;
 } SegmentData;
 
 SegmentData segmentData[10] = {
@@ -50,7 +67,7 @@ SegmentData segmentData[10] = {
     {'9', 0b1111011000010000}
 };
 
-void writeRaw(uint32_t data, int pos) {
+void writeRaw(uint16_t data, int pos) {
     if (pos == 0) {
         LCDDR0  = ((data & NIBBLE1 )       ) | (LCDDR0  & NIBBLE2);
         LCDDR5  = ((data & NIBBLE2 ) >> 4  ) | (LCDDR5  & NIBBLE2);
@@ -96,7 +113,7 @@ void writeRaw(uint32_t data, int pos) {
 
 // 7 = 0b0000000100010001
 
-uint32_t get_segments(char ch) {
+uint16_t get_segments(char ch) {
     for(int i = 0; i < 10; i++) {
         if (segmentData[i].c == ch) {
             return segmentData[i].bits;
@@ -110,9 +127,9 @@ void writeChar(char ch, int pos) {
         return;
     }
 
-    uint32_t bits = get_segments(ch);
+    uint16_t bits = get_segments(ch);
 
-    uint32_t converted = segments_to_raw(bits);
+    uint16_t converted = segments_to_raw(bits);
     
     writeRaw(converted, pos);
 }
