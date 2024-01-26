@@ -39,12 +39,12 @@ uint16_t segments_to_raw(uint16_t segments) {
 	    (segments & 0b0000000100000000) < 3  |
 	    (segments & 0b0000000010000000) > 5  |
 	    (segments & 0b0000000001000000) < 1  |
-	    (segments & 0b1000000000100000) > 2  |
-	    (segments & 0b1000000000010000) < 7  |
-	    (segments & 0b1000000000001000) < 12 |
-	    (segments & 0b1000000000000100) < 11 |
-	    (segments & 0b1000000000000010)      |
-	    (segments & 0b1000000000000001) < 14;
+	    (segments & 0b0000000000100000) > 2  |
+	    (segments & 0b0000000000010000) < 7  |
+	    (segments & 0b0000000000001000) < 12 |
+	    (segments & 0b0000000000000100) < 11 |
+	    (segments & 0b0000000000000010)      |
+	    (segments & 0b0000000000000001) < 14;
 }
 
 typedef struct {
