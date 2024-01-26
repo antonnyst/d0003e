@@ -1,13 +1,11 @@
-//#include <avr/io.h>
+#include <avr/io.h>
 #include <stdint.h>
-#include <stdio.h>
 
 #define NIBBLE1 0b1111
 #define NIBBLE2 0b1111 << 4
 #define NIBBLE3 0b1111 << 8
 #define NIBBLE4 0b1111 << 12
 
-/*
 void lcd_init(){
     LCDCRB = (1<<LCDCS) | (1<<LCDMUX1) | (1<<LCDMUX0) | (1<<LCDPM2) | (1<<LCDPM1) | (1<<LCDPM0);
     // Using 16 as prescaler selection and 8 as LCD Clock Divide
@@ -17,7 +15,7 @@ void lcd_init(){
     // Enable LCD, low power waveform and no interrupt enabled
     LCDCRA = (1<<LCDEN) | (1<<LCDAB);
 }
-*/
+
 
 // Raw thing sent to display
 //         MPND LEGC JFHB KXSA
@@ -28,44 +26,23 @@ void lcd_init(){
 //bits = 0b1101 0100 1001 0010
 
 uint16_t segments_to_raw(uint16_t segments) {
-
-    printf("\n\n");
-
-    printf("%d\n", ((segments & 0b1000000000000000) > 15 ));
-    printf("%d\n", ((segments & 0b0100000000000000) > 10 ));
-    printf("%d\n", ((segments & 0b0010000000000000) > 5  ));
-    printf("%d\n", ((segments & 0b0001000000000000)      ));
-    printf("%d\n", ((segments & 0b0000100000000000) > 1  ));
-    printf("%d\n", ((segments & 0b0000010000000000) > 4  ));
-    printf("%d\n", ((segments & 0b0000001000000000)      ));
-    printf("%d\n", ((segments & 0b0000000100000000) < 3  ));
-    printf("%d\n", ((segments & 0b0000000010000000) > 5  ));
-    printf("%d\n", ((segments & 0b0000000001000000) < 1  ));
-    printf("%d\n", ((segments & 0b0000000000100000) > 2  ));
-    printf("%d\n", ((segments & 0b0000000000010000) < 7  ));
-    printf("%d\n", ((segments & 0b0000000000001000) < 12 ));
-    printf("%d\n", ((segments & 0b0000000000000100) < 11 ));
-    printf("%d\n", ((segments & 0b0000000000000010)      ));
-    printf("%d\n", ((segments & 0b0000000000000001) < 14 ));
-
-    printf("\n\n");
     return 
-	    ((segments & 0b1000000000000000) > 15 ) |
-	    ((segments & 0b0100000000000000) > 10 ) |
-	    ((segments & 0b0010000000000000) > 5  ) |
-	    ((segments & 0b0001000000000000)      ) |
-	    ((segments & 0b0000100000000000) > 1  ) |
-	    ((segments & 0b0000010000000000) > 4  ) |
-	    ((segments & 0b0000001000000000)      ) |
-	    ((segments & 0b0000000100000000) < 3  ) |
-	    ((segments & 0b0000000010000000) > 5  ) |
-	    ((segments & 0b0000000001000000) < 1  ) |
-	    ((segments & 0b0000000000100000) > 2  ) |
-	    ((segments & 0b0000000000010000) < 7  ) |
-	    ((segments & 0b0000000000001000) < 12 ) |
-	    ((segments & 0b0000000000000100) < 11 ) |
-	    ((segments & 0b0000000000000010)      ) |
-	    ((segments & 0b0000000000000001) < 14 );
+	    ((segments & 0b1000000000000000) >> 15 ) |
+	    ((segments & 0b0100000000000000) >> 10 ) |
+	    ((segments & 0b0010000000000000) >> 5  ) |
+	    ((segments & 0b0001000000000000)       ) |
+	    ((segments & 0b0000100000000000) >> 1  ) |
+	    ((segments & 0b0000010000000000) >> 4  ) |
+	    ((segments & 0b0000001000000000)       ) |
+	    ((segments & 0b0000000100000000) >> 3  ) |
+	    ((segments & 0b0000000010000000) >> 5  ) |
+	    ((segments & 0b0000000001000000) << 1  ) |
+	    ((segments & 0b0000000000100000) >> 2  ) |
+	    ((segments & 0b0000000000010000) << 7  ) |
+	    ((segments & 0b0000000000001000) << 12 ) |
+	    ((segments & 0b0000000000000100) << 11 ) |
+	    ((segments & 0b0000000000000010)       ) |
+	    ((segments & 0b0000000000000001) << 14 );
 }
 
 typedef struct {
@@ -78,7 +55,7 @@ typedef struct {
 SegmentData segmentData[10] = {
     {'0', 0b1111110000000000},
     {'1', 0b0110000000000000},
-    {'2', 0b1100101000010000},
+    {'2', 0b1101101000010000},
     {'3', 0b1111001000010000},
     {'4', 0b0110011000010000},
     {'5', 0b1011011000010000},
@@ -88,7 +65,7 @@ SegmentData segmentData[10] = {
     {'9', 0b1111011000010000}
 };
 
-/*void writeRaw(uint16_t data, int pos) {
+void writeRaw(uint16_t data, int pos) {
     if (pos == 0) {
         LCDDR0  = ((data & NIBBLE1 )       ) | (LCDDR0  & NIBBLE2);
         LCDDR5  = ((data & NIBBLE2 ) >> 4  ) | (LCDDR5  & NIBBLE2);
@@ -130,7 +107,7 @@ SegmentData segmentData[10] = {
         LCDDR12 = ((data & NIBBLE3 ) >> 4  ) | (LCDDR10 & NIBBLE1);
         LCDDR17 = ((data & NIBBLE4 ) >> 8  ) | (LCDDR15 & NIBBLE1);
     }
-}*/
+}
 
 // 7 = 0b0000000100010001
 
@@ -148,20 +125,19 @@ void writeChar(char ch, int pos) {
         return;
     }
 
-    uint16_t bits = 0b1111111111111111; //get_segments(ch);
+    uint16_t bits = get_segments(ch);
 
-    printf("%d\n", bits);
     uint16_t converted = segments_to_raw(bits);
-    printf("%d\n", converted);
-    //writeRaw(converted, pos);
+    
+    writeRaw(converted, pos);
 }
 
 
 int main() {
-    //CLKPR = 0x80;
-    //CLKPR = 0x00;
+    CLKPR = 0x80;
+    CLKPR = 0x00;
 
-    //lcd_init();
+    lcd_init();
 
     writeChar('0', 0);
 
