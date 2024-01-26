@@ -18,19 +18,39 @@ void lcd_init(){
 }
 
 
+// Raw thing sent to display
 //   MPND LEGC JFHB KXSA
 // 0b1001 0101 0101 1111
 
+// We store as     
+//         ABCD EFGH XJKL MNSP
+//bits = 0b1101 0100 1001 0010
 
-/* struct {
-    char '0'
-             ABCD EFGH XJKL MNSP
-    bits = 0b1101 0100 1001 0010
-}*/
+uint32_t segments_to_raw(uint32_t segments) {
+    return 0;
+}
 
+typedef struct {
+    char c;
+    //         ABCD EFGH XJKL MNSP
+    //bits = 0b1101 0100 1001 0010
+    uint32_t bits;
+} SegmentData;
 
+SegmentData segmentData[10] = {
+    {'0', 0b1111110000000000},
+    {'1', 0b0110000000000000},
+    {'2', 0b1100101000010000},
+    {'3', 0b1111001000010000},
+    {'4', 0b0110011000010000},
+    {'5', 0b1011011000010000},
+    {'6', 0b1011111000010000},
+    {'7', 0b1110000000000000},
+    {'8', 0b1111111000010000},
+    {'9', 0b1111011000010000}
+};
 
-void writeRaw(uint32_t data, uint pos) {
+void writeRaw(uint32_t data, int pos) {
     if (pos == 0) {
         LCDDR0  = ((data & NIBBLE1 )       ) | (LCDDR0  & NIBBLE2);
         LCDDR5  = ((data & NIBBLE2 ) >> 4  ) | (LCDDR5  & NIBBLE2);
@@ -44,16 +64,55 @@ void writeRaw(uint32_t data, uint pos) {
         LCDDR10 = ((data & NIBBLE3 ) >> 4  ) | (LCDDR10 & NIBBLE1);
         LCDDR15 = ((data & NIBBLE4 ) >> 8  ) | (LCDDR15 & NIBBLE1);
     }
+
+    if (pos == 2) {
+        LCDDR1  = ((data & NIBBLE1 )       ) | (LCDDR0  & NIBBLE2);
+        LCDDR6  = ((data & NIBBLE2 ) >> 4  ) | (LCDDR5  & NIBBLE2);
+        LCDDR11 = ((data & NIBBLE3 ) >> 8  ) | (LCDDR10 & NIBBLE2);
+        LCDDR16 = ((data & NIBBLE4 ) >> 12 ) | (LCDDR15 & NIBBLE2);
+    }
+    
+    if (pos == 3) {
+        LCDDR1  = ((data & NIBBLE1 ) << 4  ) | (LCDDR0  & NIBBLE1);
+        LCDDR6  = ((data & NIBBLE2 )       ) | (LCDDR5  & NIBBLE1);
+        LCDDR11 = ((data & NIBBLE3 ) >> 4  ) | (LCDDR10 & NIBBLE1);
+        LCDDR16 = ((data & NIBBLE4 ) >> 8  ) | (LCDDR15 & NIBBLE1);
+    }
+
+    if (pos == 4) {
+        LCDDR2  = ((data & NIBBLE1 )       ) | (LCDDR0  & NIBBLE2);
+        LCDDR7  = ((data & NIBBLE2 ) >> 4  ) | (LCDDR5  & NIBBLE2);
+        LCDDR12 = ((data & NIBBLE3 ) >> 8  ) | (LCDDR10 & NIBBLE2);
+        LCDDR17 = ((data & NIBBLE4 ) >> 12 ) | (LCDDR15 & NIBBLE2);
+    }
+    
+    if (pos == 5) {
+        LCDDR2  = ((data & NIBBLE1 ) << 4  ) | (LCDDR0  & NIBBLE1);
+        LCDDR7  = ((data & NIBBLE2 )       ) | (LCDDR5  & NIBBLE1);
+        LCDDR12 = ((data & NIBBLE3 ) >> 4  ) | (LCDDR10 & NIBBLE1);
+        LCDDR17 = ((data & NIBBLE4 ) >> 8  ) | (LCDDR15 & NIBBLE1);
+    }
 }
 
 // 7 = 0b0000000100010001
 
-void writeChar(char ch, uint pos) {
+uint32_t get_segments(char ch) {
+    for(int i = 0; i < 10; i++) {
+        if (segmentData[i].c == ch) {
+            return segmentData[i].bits;
+        }
+    }
+    return 0;
+}
+
+void writeChar(char ch, int pos) {
     if (pos > 5) {
         return;
     }
 
-    uint32_t converted = 0b0000000100010001;
+    uint32_t bits = get_segments(ch);
+
+    uint32_t converted = segments_to_raw(bits);
     
     writeRaw(converted, pos);
 }
