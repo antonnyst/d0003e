@@ -27,24 +27,23 @@ void lcd_init(){
 //bits = 0b1101 0100 1001 0010
 
 uint16_t segments_to_raw(uint16_t segments) {
-
     return 
-	    (segments & 0b1000000000000000) > 15 |
-	    (segments & 0b0100000000000000) > 10 |
-	    (segments & 0b0010000000000000) > 5  |
-	    (segments & 0b0001000000000000)      |
-	    (segments & 0b0000100000000000) > 1  |
-	    (segments & 0b0000010000000000) > 4  |
-	    (segments & 0b0000001000000000)      |
-	    (segments & 0b0000000100000000) < 3  |
-	    (segments & 0b0000000010000000) > 5  |
-	    (segments & 0b0000000001000000) < 1  |
-	    (segments & 0b0000000000100000) > 2  |
-	    (segments & 0b0000000000010000) < 7  |
-	    (segments & 0b0000000000001000) < 12 |
-	    (segments & 0b0000000000000100) < 11 |
-	    (segments & 0b0000000000000010)      |
-	    (segments & 0b0000000000000001) < 14;
+	    ((segments & 0b1000000000000000) > 15 ) |
+	    ((segments & 0b0100000000000000) > 10 ) |
+	    ((segments & 0b0010000000000000) > 5  ) |
+	    ((segments & 0b0001000000000000)      ) |
+	    ((segments & 0b0000100000000000) > 1  ) |
+	    ((segments & 0b0000010000000000) > 4  ) |
+	    ((segments & 0b0000001000000000)      ) |
+	    ((segments & 0b0000000100000000) < 3  ) |
+	    ((segments & 0b0000000010000000) > 5  ) |
+	    ((segments & 0b0000000001000000) < 1  ) |
+	    ((segments & 0b0000000000100000) > 2  ) |
+	    ((segments & 0b0000000000010000) < 7  ) |
+	    ((segments & 0b0000000000001000) < 12 ) |
+	    ((segments & 0b0000000000000100) < 11 ) |
+	    ((segments & 0b0000000000000010)      ) |
+	    ((segments & 0b0000000000000001) < 14 );
 }
 
 typedef struct {
@@ -127,7 +126,7 @@ void writeChar(char ch, int pos) {
         return;
     }
 
-    uint16_t bits = get_segments(ch);
+    uint16_t bits = 0b1111111111111111; //get_segments(ch);
 
     uint16_t converted = segments_to_raw(bits);
     
