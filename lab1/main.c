@@ -81,31 +81,31 @@ void writeRaw(uint16_t data, int pos) {
     }
 
     if (pos == 2) {
-        LCDDR1  = ((data & NIBBLE1 )       ) | (LCDDR0  & NIBBLE2);
-        LCDDR6  = ((data & NIBBLE2 ) >> 4  ) | (LCDDR5  & NIBBLE2);
-        LCDDR11 = ((data & NIBBLE3 ) >> 8  ) | (LCDDR10 & NIBBLE2);
-        LCDDR16 = ((data & NIBBLE4 ) >> 12 ) | (LCDDR15 & NIBBLE2);
+        LCDDR1  = ((data & NIBBLE1 )       ) | (LCDDR1 & NIBBLE2);
+        LCDDR6  = ((data & NIBBLE2 ) >> 4  ) | (LCDDR6  & NIBBLE2);
+        LCDDR11 = ((data & NIBBLE3 ) >> 8  ) | (LCDDR11 & NIBBLE2);
+        LCDDR16 = ((data & NIBBLE4 ) >> 12 ) | (LCDDR16 & NIBBLE2);
     }
     
     if (pos == 3) {
-        LCDDR1  = ((data & NIBBLE1 ) << 4  ) | (LCDDR0  & NIBBLE1);
-        LCDDR6  = ((data & NIBBLE2 )       ) | (LCDDR5  & NIBBLE1);
-        LCDDR11 = ((data & NIBBLE3 ) >> 4  ) | (LCDDR10 & NIBBLE1);
-        LCDDR16 = ((data & NIBBLE4 ) >> 8  ) | (LCDDR15 & NIBBLE1);
+        LCDDR1  = ((data & NIBBLE1 ) << 4  ) | (LCDDR1  & NIBBLE1);
+        LCDDR6  = ((data & NIBBLE2 )       ) | (LCDDR6  & NIBBLE1);
+        LCDDR11 = ((data & NIBBLE3 ) >> 4  ) | (LCDDR11 & NIBBLE1);
+        LCDDR16 = ((data & NIBBLE4 ) >> 8  ) | (LCDDR16 & NIBBLE1);
     }
 
     if (pos == 4) {
-        LCDDR2  = ((data & NIBBLE1 )       ) | (LCDDR0  & NIBBLE2);
-        LCDDR7  = ((data & NIBBLE2 ) >> 4  ) | (LCDDR5  & NIBBLE2);
-        LCDDR12 = ((data & NIBBLE3 ) >> 8  ) | (LCDDR10 & NIBBLE2);
-        LCDDR17 = ((data & NIBBLE4 ) >> 12 ) | (LCDDR15 & NIBBLE2);
+        LCDDR2  = ((data & NIBBLE1 )       ) | (LCDDR2  & NIBBLE2);
+        LCDDR7  = ((data & NIBBLE2 ) >> 4  ) | (LCDDR7  & NIBBLE2);
+        LCDDR12 = ((data & NIBBLE3 ) >> 8  ) | (LCDDR12 & NIBBLE2);
+        LCDDR17 = ((data & NIBBLE4 ) >> 12 ) | (LCDDR17 & NIBBLE2);
     }
     
     if (pos == 5) {
-        LCDDR2  = ((data & NIBBLE1 ) << 4  ) | (LCDDR0  & NIBBLE1);
-        LCDDR7  = ((data & NIBBLE2 )       ) | (LCDDR5  & NIBBLE1);
-        LCDDR12 = ((data & NIBBLE3 ) >> 4  ) | (LCDDR10 & NIBBLE1);
-        LCDDR17 = ((data & NIBBLE4 ) >> 8  ) | (LCDDR15 & NIBBLE1);
+        LCDDR2  = ((data & NIBBLE1 ) << 4  ) | (LCDDR2  & NIBBLE1);
+        LCDDR7  = ((data & NIBBLE2 )       ) | (LCDDR7  & NIBBLE1);
+        LCDDR12 = ((data & NIBBLE3 ) >> 4  ) | (LCDDR12 & NIBBLE1);
+        LCDDR17 = ((data & NIBBLE4 ) >> 8  ) | (LCDDR17 & NIBBLE1);
     }
 }
 
@@ -132,6 +132,12 @@ void writeChar(char ch, int pos) {
     writeRaw(converted, pos);
 }
 
+void writeLong(long i) {
+    for(int pos = 5; pos >= 0; pos--) {
+        writeChar((char)(48+i%10), pos);
+        i = i / 10;
+    }
+}
 
 int main() {
     CLKPR = 0x80;
@@ -139,14 +145,7 @@ int main() {
 
     lcd_init();
 
-    writeChar('0', 0);
-
-    //LCDDR0 = 0b00001111;
-
-
-    //writeRaw(0b1011, 1);
-    //LCDDR0 = (ch && 0xf) || (LCDDR0 && 0xf0);
-
+    writeLong(1234567890);
 
     return 0;
 }
