@@ -162,23 +162,20 @@ void primes() {
 
 }
 
-// 
-//
-//          previous
-//
-//
-// wait
-//
-//
-//
-//
-//
-// 
+long global_primes_i = 25000;
+void primes_concurrent() {
+    if (is_prime(global_primes_i)) {
+        writeLong(global_primes_i);
+    }
+    global_primes_i++;
+}
+
+void timer_init() {
+    // Init timer with hz of 31250
+    TCCR1B = (1 << CS12);
+}
 
 void blink() {
-    // Init timer with hz of 31250
-    TCCR1B = 1<<CS12;
-
     // One second equals 31250 increments
     uint16_t previous = TCNT1;
     uint16_t wait = TCNT1 + 31250/2;
@@ -189,31 +186,104 @@ void blink() {
     while(true) {
 
         // Busy wait for half period
-        while(TCNT1 < wait || ((previous > wait) && TCNT1 >= previous)) {}
+        while(TCNT1 < wait || ((previous >= wait) && TCNT1 >= previous)) {}
 
         // Toggle state and write to display
         state = !state;
         LCDDR18 = state;
 
         // Calculate next value to wait for
+        previous = TCNT1;
         wait = TCNT1 + 31250/2;
-        writeLong(wait);
+        //writeLong(wait);
     }
 }
 
 
+uint16_t global_blink_previous = 1;
+uint16_t global_blink_wait = 2;
+bool global_blink_state = false;
 
+void blink_concurrent() {
+    // Check if timer has reached wait
+    if (TCNT1 >= global_blink_wait && ( (global_blink_previous < global_blink_wait) || ( TCNT1 < global_blink_previous))) {
+        
+        // Toggle state and write to display
+        global_blink_state = !global_blink_state;
+        LCDDR18 = global_blink_state;
+
+        // Calculate next value to wait for
+        global_blink_previous = TCNT1;
+        global_blink_wait = TCNT1 + 31250/2;
+    }
+}
+
+
+void button_init() {
+    PORTB = 0b10000000;
+}
+
+void button() {
+    bool state = false;
+    LCDDR3 = state;
+    LCDDR13 = !state;
+    
+    while(true) {
+        
+        // Busy wait for down
+        while(PINB & 0b10000000) {}
+
+        state = !state;
+
+        LCDDR3 = state;
+        LCDDR13 = !state;
+        
+        // Busy wait for up
+        while(!(PINB & 0b10000000)) {}
+
+    }
+
+}
+
+bool global_button_state = false;
+bool global_button_pressed = false;
+
+void button_concurrent() {
+    LCDDR3 = global_button_state;
+    LCDDR13 = !global_button_state;
+
+    if (global_button_pressed) {
+        // Button is pressed check if it is now not pressed
+        if (PINB & 0b10000000) {
+            global_button_pressed = false;
+        }
+    } else {
+        // Button is not pressed check if it is now pressed
+        if (!(PINB & 0b10000000)) {
+            global_button_pressed = true;
+            global_button_state = !global_button_state;
+        }
+    }
+}
 
 int main() {
     CLKPR = 0x80;
     CLKPR = 0x00;
 
     lcd_init();
+    timer_init();
+    button_init();
 
-    blink();
-    writeLong(10);
+    //primes();
+    //blink();
+    //button();
+
+    while(true) {
+        primes_concurrent();
+        blink_concurrent();
+        button_concurrent();
+    }
     
-    //LCDDR18 = 0x1;
 
     return 0;
 }
