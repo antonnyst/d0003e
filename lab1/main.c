@@ -1,5 +1,6 @@
 #include <avr/io.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #define NIBBLE1 0b1111
 #define NIBBLE2 0b1111 << 4
@@ -139,13 +140,80 @@ void writeLong(long i) {
     }
 }
 
+bool is_prime(long i) {
+    for(long n = 2; n < i; n++) {
+        if(i % n == 0) {
+            return false;
+        }
+    }
+    return true;
+}
+
+void primes() {
+    long i = 2;
+    while(true) {
+        if (is_prime(i)) {
+            writeLong(i);
+        }
+        i++;
+
+        for(volatile long f = 0; f < 30000; f++) {}
+    }
+
+}
+
+// 
+//
+//          previous
+//
+//
+// wait
+//
+//
+//
+//
+//
+// 
+
+void blink() {
+    // Init timer with hz of 31250
+    TCCR1B = 1<<CS12;
+
+    // One second equals 31250 increments
+    uint16_t previous = TCNT1;
+    uint16_t wait = TCNT1 + 31250/2;
+
+    bool state = false;
+    LCDDR18 = 0x0;
+
+    while(true) {
+
+        // Busy wait for half period
+        while(TCNT1 < wait || ((previous > wait) && TCNT1 >= previous)) {}
+
+        // Toggle state and write to display
+        state = !state;
+        LCDDR18 = state;
+
+        // Calculate next value to wait for
+        wait = TCNT1 + 31250/2;
+        writeLong(wait);
+    }
+}
+
+
+
+
 int main() {
     CLKPR = 0x80;
     CLKPR = 0x00;
 
     lcd_init();
 
-    writeLong(1234567890);
+    blink();
+    writeLong(10);
+    
+    //LCDDR18 = 0x1;
 
     return 0;
 }
