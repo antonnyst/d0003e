@@ -230,16 +230,23 @@ void button() {
     
     while(true) {
         
+        for(volatile long f = 0; f < 5000; f++) {}
+
         // Busy wait for down
-        while(PINB & 0b10000000) {}
+        while(PINB & 0b10000000) {
+            //writeLong(PINB);
+        }
 
         state = !state;
 
         LCDDR3 = state;
         LCDDR13 = !state;
         
+
         // Busy wait for up
-        while(!(PINB & 0b10000000)) {}
+        while(!(PINB & 0b10000000)) {
+            //writeLong(PINB);
+        }
 
     }
 
@@ -283,6 +290,9 @@ int main() {
         blink_concurrent();
         button_concurrent();
     }
+    //*/
+
+    //writeLong(123456789);
     
 
     return 0;
