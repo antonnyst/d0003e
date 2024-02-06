@@ -36,6 +36,22 @@ static void initialize(void) {
     threads[NTHREADS-1].next = NULL;
 
 
+    // Joystick stuff
+    PORTB = 0b10000000;
+    EIMSK = 0b10000000;
+    PCMSK1 = 0b10000000;
+    
+    // Timer stuff
+             // Prescaler               // CTC
+    TCCR1B = (1 << CS12) | (1 << CS10) | (1 << WGM12) | (1 << WGM13);
+    TCNT1 = 0; // Reset timer
+    
+             // OC1A high on compare match
+    TCCR1A = (1 << COM1A1) | (1 << COM1A0);
+
+    OCR1A = 390; //(8Mhz / 1024) * 0.05
+    TIMSK1 = (1 << ICIE1) | (1 << OCIE1A);
+
     initialized = 1;
 }
 
@@ -95,6 +111,10 @@ void spawn(void (* function)(int), int arg) {
 void yield(void) {
     enqueue(current, &readyQ);
     dispatch(dequeue(&readyQ));
+}
+
+ISR(TIMER1_COMPA_vect) {
+    yield();
 }
 
 void lock(mutex *m) {
