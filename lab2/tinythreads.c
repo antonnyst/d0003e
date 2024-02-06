@@ -37,13 +37,13 @@ static void initialize(void) {
 
 
     // Joystick stuff
-    PORTB = 0b10000000;
-    EIMSK = 0b10000000;
-    PCMSK1 = 0b10000000;
+    //PORTB = 0b10000000;
+    //EIMSK = 0b10000000;
+    //PCMSK1 = 0b10000000;
     
     // Timer stuff
              // Prescaler               // CTC
-    TCCR1B = (1 << CS12) | (1 << CS10) | (1 << WGM12) | (1 << WGM13);
+    TCCR1B = (1 << CS12) | (1 << CS10) | (1 << WGM12);
     TCNT1 = 0; // Reset timer
     
              // OC1A high on compare match
@@ -51,6 +51,8 @@ static void initialize(void) {
 
     OCR1A = 390; //(8Mhz / 1024) * 0.05
     TIMSK1 = (1 << ICIE1) | (1 << OCIE1A);
+
+    PORTB = (1 << PB5);
 
     initialized = 1;
 }
