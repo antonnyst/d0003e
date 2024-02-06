@@ -145,12 +145,15 @@ bool is_prime(long i) {
 }
 
 int pp;
+mutex ppm = MUTEX_INIT;
 
 void printAt(long num, int pos) {
+    lock(&ppm);
     pp = pos;
     writeChar( (num % 100) / 10 + '0', pp);
     pp++;
     writeChar( num % 10 + '0', pp);
+    unlock(&ppm);
 }
 
 void computePrimes(int pos) {

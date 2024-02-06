@@ -125,19 +125,18 @@ void lock(mutex *m) {
     }
 
     else{
-        enqueue(current, m->waitQ);
+        enqueue(current, &(m->waitQ));
         dispatch(dequeue(&readyQ));
     }
 }
 
 void unlock(mutex *m) {
     if (m->waitQ != NULL){
-        enqueue(current, readyQ);
-        dispatch(dequeue(m->waitQ));
+        enqueue(current, &readyQ);
+        dispatch(dequeue(&(m->waitQ)));
     }
 
     else {
         m->locked = 0;
     }
-
 }
