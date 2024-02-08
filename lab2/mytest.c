@@ -148,12 +148,13 @@ int pp;
 mutex ppm = MUTEX_INIT;
 
 void printAt(long num, int pos) {
-    lock(&ppm);
+    //lock(&ppm);
     pp = pos;
     writeChar( (num % 100) / 10 + '0', pp);
+    for(volatile int i = 0; i < 20000; i++) {}
     pp++;
     writeChar( num % 10 + '0', pp);
-    unlock(&ppm);
+    //unlock(&ppm);
 }
 
 void computePrimes(int pos) {

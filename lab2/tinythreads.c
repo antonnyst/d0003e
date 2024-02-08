@@ -111,8 +111,10 @@ void spawn(void (* function)(int), int arg) {
 }
 
 void yield(void) {
+    DISABLE();
     enqueue(current, &readyQ);
     dispatch(dequeue(&readyQ));
+    ENABLE();
 }
 
 ISR(TIMER1_COMPA_vect) {
@@ -120,6 +122,7 @@ ISR(TIMER1_COMPA_vect) {
 }
 
 void lock(mutex *m) {
+    DISABLE();
     if (m->locked == 0){
         m->locked = 1;
     }
@@ -128,9 +131,12 @@ void lock(mutex *m) {
         enqueue(current, &(m->waitQ));
         dispatch(dequeue(&readyQ));
     }
+    ENABLE();
 }
 
 void unlock(mutex *m) {
+    DISABLE();
+
     if (m->waitQ != NULL){
         enqueue(current, &readyQ);
         dispatch(dequeue(&(m->waitQ)));
@@ -139,4 +145,5 @@ void unlock(mutex *m) {
     else {
         m->locked = 0;
     }
+    ENABLE();
 }
