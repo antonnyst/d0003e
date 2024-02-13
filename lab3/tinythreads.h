@@ -18,6 +18,12 @@ struct mutex_block {
 };
 typedef struct mutex_block mutex;
 
+
+int get_timer_count();
+void set_timer_count(int arg);
+void lock_blink_mutex();
+
+
 #define MUTEX_INIT {0,0}
 void lock(mutex *m);
 void unlock(mutex *m);

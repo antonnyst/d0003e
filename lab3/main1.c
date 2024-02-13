@@ -1,8 +1,7 @@
-#include "tinythreads.h"
-#include <stdbool.h>
-#include <stdint.h>
+/*#include "tinythreads.h"
 #include <avr/io.h>
-
+#include <stdint.h>
+#include <stdbool.h>
 
 #define NIBBLE1 0b1111
 #define NIBBLE2 0b1111 << 4
@@ -135,6 +134,20 @@ void writeChar(char ch, int pos) {
     writeRaw(converted, pos);
 }
 
+void writeLong(long i) {
+    for(int pos = 5; pos >= 0; pos--) {
+        writeChar((char)(48+i%10), pos);
+        i = i / 10;
+    }
+}
+
+void printAt(long num, int pos) {
+    int pp = pos;
+    writeChar( (num % 100) / 10 + '0', pp);
+    pp++;
+    writeChar( num % 10 + '0', pp);
+}
+
 bool is_prime(long i) {
     for(long n = 2; n < i; n++) {
         if(i % n == 0) {
@@ -144,28 +157,73 @@ bool is_prime(long i) {
     return true;
 }
 
-int pp;
-mutex ppm = MUTEX_INIT;
+void primes() {
+    long i = 2;
+    while(true) {
+        if (is_prime(i)) {
+            printAt(i, 0);
+        }
+        i++;
 
-void printAt(long num, int pos) {
-    //lock(&ppm);
-    pp = pos;
-    writeChar( (num % 100) / 10 + '0', pp);
-    for(volatile int i = 0; i < 20000; i++) {}
-    pp++;
-    writeChar( num % 10 + '0', pp);
-    //unlock(&ppm);
+        for(volatile long f = 0; f < 30000; f++) {}
+    }
+
 }
 
-void computePrimes(int pos) {
-    long n;
 
-    for(n = 1; ; n++) {
-        if (is_prime(n)) {
-            printAt(n, pos);
-            //yield();
-        }
+void timer_init() {
+    // Init timer with hz of 31250
+    TCCR1B = (1 << CS12);
+}
+
+void blink() {
+    // One second equals 31250 increments
+    uint16_t wait = 10;
+
+    bool state = false;
+    LCDDR18 = 0x0;
+
+    while(true) {
+
+        // Busy wait for half period
+        while(get_timer_count() < wait) {}
+
+        set_timer_count(0);
+        // Toggle state and write to display
+        state = !state;
+        LCDDR18 = state;
+
     }
+}
+
+void button_init() {
+    PORTB = 0b10000000 | PORTB;
+}
+
+void button() {
+    int count = 0;
+    printAt(count, 3);
+
+    while(true) {
+        
+        for(volatile long f = 0; f < 5000; f++) {}
+
+        // Busy wait for down
+        while(PINB & 0b10000000) {
+            //writeLong(PINB);
+        }
+
+        count++;
+
+        printAt(count, 3);
+        
+        // Busy wait for up
+        while(!(PINB & 0b10000000)) {
+            //writeLong(PINB);
+        }
+
+    }
+
 }
 
 int main() {
@@ -173,6 +231,13 @@ int main() {
     CLKPR = 0x00;
 
     lcd_init();
-    spawn(computePrimes, 0);
-    computePrimes(3);
+    //timer_init();
+    button_init();
+
+    spawn(blink, 0);
+    spawn(button, 0);
+    primes();
+
+    return 0;
 }
+*/

@@ -43,7 +43,7 @@ static void initialize(void) {
     
     // Timer stuff
              // Prescaler               // CTC
-    TCCR1B = (1 << CS12) | (1 << CS10) | (1 << WGM12);
+    /*TCCR1B = (1 << CS12) | (1 << CS10) | (1 << WGM12);
     TCNT1 = 0; // Reset timer
     
              // OC1A high on compare match
@@ -52,13 +52,20 @@ static void initialize(void) {
     OCR1A = 390; //(8Mhz / 1024) * 0.05
     TIMSK1 = (1 << ICIE1) | (1 << OCIE1A);
 
-    PORTB = (1 << PB5);
+    PORTB = (1 << PB5);*/
 
     initialized = 1;
 }
 
 static void enqueue(thread p, thread *queue) {
-    p->next = NULL;
+    if (*queue == NULL) {
+        *queue = p;
+    } else {
+        p->next = *queue;
+        *queue = p;
+    }
+    
+    /*p->next = NULL;
     if (*queue == NULL) {
         *queue = p;
     } else {
@@ -66,7 +73,7 @@ static void enqueue(thread p, thread *queue) {
         while (q->next)
             q = q->next;
         q->next = p;
-    }
+    }*/
 }
 
 static thread dequeue(thread *queue) {
@@ -106,7 +113,8 @@ void spawn(void (* function)(int), int arg) {
     }
     SETSTACK(&newp->context, &newp->stack);
 
-    enqueue(newp, &readyQ);
+    enqueue(current, &readyQ);
+    dispatch(newp);
     ENABLE();
 }
 
@@ -117,9 +125,21 @@ void yield(void) {
     ENABLE();
 }
 
-ISR(TIMER1_COMPA_vect) {
-    yield();
+int timer_count = 0;
+
+int get_timer_count() {
+    return timer_count;
 }
+
+void set_timer_count(int arg) {
+    timer_count = arg;
+}
+
+/*ISR(TIMER1_COMPA_vect) {
+    yield();
+    timer_count++;
+}*/
+
 
 void lock(mutex *m) {
     DISABLE();

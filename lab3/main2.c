@@ -1,4 +1,4 @@
-#include "tinythreads.h"
+/*#include "tinythreads.h"
 #include <avr/io.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -186,19 +186,34 @@ void blink_init() {
     OCR1A = 3906; //(8Mhz / 1024) * 0.5
     TIMSK1 = (1 << ICIE1) | (1 << OCIE1A);
 
-    PORTB = (1 << PB5) | PORTB;//*/
+    PORTB = (1 << PB5) | PORTB;//
 }
 
-bool global_blink_state = false;
+mutex blink_mutex = {1, 0};
 
 void blink() {
-    // Toggle state and write to display
-    global_blink_state = !global_blink_state;
-    LCDDR18 = global_blink_state;
+    // One second equals 31250 increments
+    // uint16_t wait = 10;
+
+    bool state = false;
+    LCDDR18 = 0x0;
+
+    //writeLong(777777777);
+
+    while(true) {
+
+        lock(&blink_mutex);
+        // Toggle state and write to display
+        state = !state;
+        LCDDR18 = state;
+
+    }
 }
 
 ISR(TIMER1_COMPA_vect) {
-    spawn(blink, 0);
+    //writeLong(12356789);
+    //while(true) {}
+    unlock(&blink_mutex);
 }
 
 void button_init() {
@@ -207,16 +222,28 @@ void button_init() {
     PCMSK1 = 0b10000000;
 }
 
-int global_button_count = 0;
-void button() {
-    global_button_count++;
-    printAt(global_button_count, 3);
-}
+mutex button_mutex = {1, 0};
+
+
 
 ISR(PCINT1_vect) {
     if (!(PINB & 0b10000000)) {
-        spawn(button, 0);
+        unlock(&button_mutex);
     }
+}
+
+void button() {
+    int count = 0;
+    printAt(count, 3);
+
+    while(true) {
+        lock(&button_mutex);
+
+        count++;
+
+        printAt(count, 3);
+    }
+
 }
 
 int main() {
@@ -229,7 +256,8 @@ int main() {
 
     spawn(blink, 0);
     spawn(button, 0);
-    //primes();
-    while(true){}
+    primes();
+
     return 0;
 }
+*/
