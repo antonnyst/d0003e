@@ -1,3 +1,4 @@
+///*
 #include "tinythreads.h"
 #include <avr/io.h>
 #include <stdint.h>
@@ -186,7 +187,7 @@ void blink_init() {
     OCR1A = 3906; //(8Mhz / 1024) * 0.5
     TIMSK1 = (1 << ICIE1) | (1 << OCIE1A);
 
-    PORTB = (1 << PB5) | PORTB;//*/
+    PORTB = (1 << PB5) | PORTB;
 }
 
 bool global_blink_state = false;
@@ -229,7 +230,9 @@ int main() {
 
     spawn(blink, 0);
     spawn(button, 0);
-    //primes();
+    primes();
+
     while(true){}
     return 0;
 }
+//*/

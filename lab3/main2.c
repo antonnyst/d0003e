@@ -1,4 +1,5 @@
-/*#include "tinythreads.h"
+/*
+#include "tinythreads.h"
 #include <avr/io.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -225,7 +226,6 @@ void button_init() {
 mutex button_mutex = {1, 0};
 
 
-
 ISR(PCINT1_vect) {
     if (!(PINB & 0b10000000)) {
         unlock(&button_mutex);
@@ -260,4 +260,4 @@ int main() {
 
     return 0;
 }
-*/
+//*/
