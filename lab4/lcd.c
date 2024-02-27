@@ -1,5 +1,7 @@
 #include <stdint.h>
 #include <stdbool.h>
+#include <avr/io.h>
+#include "lcd.h"
 
 #define NIBBLE1 0b1111
 #define NIBBLE2 0b1111 << 4

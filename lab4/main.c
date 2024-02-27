@@ -7,13 +7,13 @@ int main() {
 
     Writer writer = initWriter();
 
-    PulseGenerator p1 = initPulseGenerator(writer, 4);
-    PulseGenerator p2 = initPulseGenerator(writer, 6);
+    PulseGenerator p1 = initPulseGenerator(4, writer);
+    PulseGenerator p2 = initPulseGenerator(6, writer);
 
     GUI gui = initGUI(p1, p2);
 
-    INSTALL();
-    INSTALL();
+    INSTALL(&gui, joystick_something, IRQ_PCINT0);
+    INSTALL(&gui, joystick_something, IRQ_PCINT1);
 
     return TINYTIMBER(&gui, init, NULL);
 }

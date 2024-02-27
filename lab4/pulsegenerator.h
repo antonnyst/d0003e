@@ -1,6 +1,10 @@
 #include <stdbool.h>
 #include "writer.h"
 
+
+#ifndef pulsegenerator_H
+#define pulsegenerator_H
+
 typedef struct {
     int hz;
     int saved;
@@ -8,10 +12,12 @@ typedef struct {
     Writer writer;
 } PulseGenerator;
 
-#define initPulseGenerator(writer) {0, 0, writer}
+#define initPulseGenerator(bit, writer) {0, 0, bit, writer}
 
-int update(PulseGenerator *self);
+int pulse(PulseGenerator *self);
 int increment(PulseGenerator *self);
 int decrement(PulseGenerator *self);
 int save_load(PulseGenerator *self);
 int get_hz(PulseGenerator *self);
+
+#endif
