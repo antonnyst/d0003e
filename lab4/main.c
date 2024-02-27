@@ -2,6 +2,7 @@
 #include "writer.h"
 #include "pulsegenerator.h"
 #include "gui.h"
+#include "lcd.h"
 
 int main() {
 
@@ -10,10 +11,12 @@ int main() {
     PulseGenerator p1 = initPulseGenerator(4, writer);
     PulseGenerator p2 = initPulseGenerator(6, writer);
 
+    //writeLong(&p1);
+
     GUI gui = initGUI(p1, p2);
 
-    INSTALL(&gui, joystick_something, IRQ_PCINT0);
-    INSTALL(&gui, joystick_something, IRQ_PCINT1);
+    INSTALL(&gui, joystickEvent, IRQ_PCINT0);
+    INSTALL(&gui, joystickEvent, IRQ_PCINT1);
 
     return TINYTIMBER(&gui, init, NULL);
 }

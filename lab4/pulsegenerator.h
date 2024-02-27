@@ -15,8 +15,8 @@ typedef struct {
 #define initPulseGenerator(bit, writer) {0, 0, bit, writer}
 
 int pulse(PulseGenerator *self);
-int increment(PulseGenerator *self);
-int decrement(PulseGenerator *self);
+int increment(PulseGenerator *self, int *arg);
+int decrement(PulseGenerator *self, int *arg);
 int save_load(PulseGenerator *self);
 int get_hz(PulseGenerator *self);
 

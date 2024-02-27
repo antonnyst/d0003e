@@ -1,6 +1,6 @@
 #include "pulsegenerator.h"
 #include "writer.h"
-
+#include "lcd.h"
 
 // Pulse method
 // Toggles the pulse with writer object
@@ -11,7 +11,7 @@ int pulse(PulseGenerator *self) {
     
     // Call again if generator is still enabled
     if (self->hz > 0) {
-        AFTER(MSEC(1000/(self->hz)), &self, pulse, NULL);
+        AFTER(CURRENT_OFFSET() + MSEC(1000/(self->hz)), &self, pulse, NULL);
     } else {
         // Generator has been disabled so we set the bit to zero
         ASYNC(&(self->writer), zero_port_e, self->bit);
@@ -21,7 +21,9 @@ int pulse(PulseGenerator *self) {
 }
 
 // Increment method
-int increment(PulseGenerator *self) {
+int increment(PulseGenerator *self, int *arg) {
+    writeLong(66);
+
     if (self->hz == 0) {
         // Starting an disabled generator
         ASYNC(&self, pulse, NULL);
@@ -31,7 +33,9 @@ int increment(PulseGenerator *self) {
 }
 
 // Decrement method
-int decrement(PulseGenerator *self) {
+int decrement(PulseGenerator *self, int *arg) {
+    writeLong(99);
+
     if (self->hz > 0) {
         self->hz = self->hz - 1;
     }
@@ -52,5 +56,5 @@ int save_load(PulseGenerator *self) {
 
 // Get_hz method
 int get_hz(PulseGenerator *self) {
-    return self->hz;
+    return &(self->hz);
 }

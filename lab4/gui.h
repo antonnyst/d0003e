@@ -4,7 +4,7 @@
 #ifndef GUI_H
 #define GUI_H
 
-#define initGUI(left, right) {false, left, right, 0}
+#define initGUI(left, right) {false, left, right}
 
 typedef struct {
     bool active; 
@@ -13,7 +13,7 @@ typedef struct {
 } GUI;
 
 int init(GUI *self);
-int joystick_something(GUI *self);
+int joystickEvent(GUI *self);
 
 
 #endif
