@@ -10,3 +10,5 @@ typedef struct {
     PulseGenerator right;
 } GUI;
 
+int init(GUI *self);
+

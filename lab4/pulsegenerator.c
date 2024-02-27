@@ -5,6 +5,7 @@
 // Pulse method
 // Toggles the pulse with writer object
 int pulse(PulseGenerator *self) {
+
     return 0;
 }
 

@@ -5,7 +5,6 @@ typedef struct {
     int hz;
     int saved;
     int bit;
-    bool pulse;
     Writer writer;
 } PulseGenerator;
 
