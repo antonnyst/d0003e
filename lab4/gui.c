@@ -1,5 +1,6 @@
 #include "gui.h"
 #include "lcd.h"
+#include "pulsegenerator.h"
 
 #define GUI_UPDATE_FREQ MSEC(50)
 
@@ -20,6 +21,64 @@ int update(GUI *self) {
     return 0;
 }
 
+
+int joystickLeft(GUI *self){
+    self->active = 0;
+    return 0;
+}
+
+int joystickRight(GUI *self){
+    self->active = 0;
+    return 0;
+}
+
+int joystickUP(GUI *self){
+    if (self->active == 0){
+        ASYNC(self->left, increment, NULL);
+        return 0;    
+    }
+
+    if (self->active == 1){ 
+        ASYNC(self->right, increment, NULL);
+        return 0;
+    }
+
+    else {
+        return 1;
+    }
+}
+
+int joystickDown(GUI *self){
+    if (self->active == 0){
+        ASYNC(self->left, decrement, NULL);
+        return 0;
+
+    }
+    if (self->active == 1){ 
+        ASYNC(self->right, decrement, NULL);
+        return 0;
+    }
+
+    else {
+        return 1;
+    }
+}
+
+int joystickPress(GUI *self){
+    if (self->active == 0){
+        ASYNC(self->left, save_load, NULL);
+        return 0;
+    }
+
+    if (self->active == 1){
+        ASYNC(self->right, save_load, NULL);
+        return 0;
+    }
+
+    else{
+        return 1;
+    }
+}
 ////// HANDLERS ///////
 // JOYSTICK LEFT
 // Changes active to left
@@ -34,4 +93,4 @@ int update(GUI *self) {
 // Runs pulsegenerators decrease hz
 
 // JOYSTICK PRESS
-// Runs pulsegenerators save/load
+// Run pulsegenerators save/load
