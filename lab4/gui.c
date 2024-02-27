@@ -92,3 +92,32 @@ int joystickPress(GUI *self){
     }
 }
 
+int joystickEvent(GUI *self){
+
+    if (PINB & 0b10000000){ // joystick is down
+        joystickDown(self);
+        return 0;
+    }
+
+    if (PINB & 0b01000000){
+        joystickUp(self);
+        return 0;
+    }
+
+    if (PINE & 0b00000100){
+        joystickLeft(self);
+        return 0;
+    }
+
+    if (PINE & 0b00001000){
+        joystickRight(self);
+        return 0;
+    }
+
+    if (PINB & 0b00010000){
+        joystickPress(self);
+        return 0;
+    }
+    return 1;
+}
+    
