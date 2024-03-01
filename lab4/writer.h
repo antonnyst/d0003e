@@ -8,7 +8,7 @@ typedef struct {
     Object super;
 } Writer;
 
-#define initWriter() {}
+#define initWriter() {initObject()}
 
 int toggle_port_e(Writer *self, int bit);
 int zero_port_e(Writer *self, int bit);

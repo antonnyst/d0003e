@@ -4,14 +4,17 @@
 #include "gui.h"
 #include "lcd.h"
 
+// BIT 4 = inget?
+// BIT 5 = left = PE6
+// BIT 6 = mitten = PE5
+// BIT 7 = inget? = ?
+
 int main() {
 
     Writer writer = initWriter();
 
-    PulseGenerator p1 = initPulseGenerator(4, writer);
+    PulseGenerator p1 = initPulseGenerator(5, writer);
     PulseGenerator p2 = initPulseGenerator(6, writer);
-
-    //writeLong(&p1);
 
     GUI gui = initGUI(p1, p2);
 

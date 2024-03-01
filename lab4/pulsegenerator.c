@@ -11,7 +11,7 @@ int pulse(PulseGenerator *self) {
     
     // Call again if generator is still enabled
     if (self->hz > 0) {
-        AFTER(CURRENT_OFFSET() + MSEC(1000/(self->hz)), &self, pulse, NULL);
+        AFTER(CURRENT_OFFSET() + MSEC(1000/(self->hz)), self, pulse, NULL);
     } else {
         // Generator has been disabled so we set the bit to zero
         ASYNC(&(self->writer), zero_port_e, self->bit);
@@ -22,11 +22,11 @@ int pulse(PulseGenerator *self) {
 
 // Increment method
 int increment(PulseGenerator *self, int *arg) {
-    writeLong(66);
+    //writeLong(66);
 
     if (self->hz == 0) {
         // Starting an disabled generator
-        ASYNC(&self, pulse, NULL);
+        ASYNC(self, pulse, NULL);
     }
     self->hz = self->hz + 1;
     return 0;
@@ -34,7 +34,7 @@ int increment(PulseGenerator *self, int *arg) {
 
 // Decrement method
 int decrement(PulseGenerator *self, int *arg) {
-    writeLong(99);
+    //writeLong(99);
 
     if (self->hz > 0) {
         self->hz = self->hz - 1;
@@ -44,11 +44,14 @@ int decrement(PulseGenerator *self, int *arg) {
 
 // Save/load method
 int save_load(PulseGenerator *self) {
-    if (self->hz > 0) {
+    if (self->hz > 0) { // save
         self->saved = self->hz;
         self->hz = 0;
-    } else {
+    } else { // load
         self->hz = self->saved;
+        if (self->hz > 0) {
+            ASYNC(self, pulse, NULL);
+        }
     }
 
     return 0;
@@ -56,5 +59,5 @@ int save_load(PulseGenerator *self) {
 
 // Get_hz method
 int get_hz(PulseGenerator *self) {
-    return &(self->hz);
+    return self->hz;
 }

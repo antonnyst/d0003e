@@ -53,7 +53,8 @@ typedef struct {
     uint16_t bits;
 } SegmentData;
 
-SegmentData segmentData[10] = {
+SegmentData segmentData[12] = {
+    {' ', 0b0000000000000000},
     {'0', 0b1111110000000000},
     {'1', 0b0110000000000000},
     {'2', 0b1101101000010000},
@@ -63,7 +64,8 @@ SegmentData segmentData[10] = {
     {'6', 0b1011111000010000},
     {'7', 0b1110000000000000},
     {'8', 0b1111111000010000},
-    {'9', 0b1111011000010000}
+    {'9', 0b1111011000010000},
+    {'A', 0b0000000010000000}
 };
 
 void writeRaw(uint16_t data, int pos) {
@@ -113,7 +115,7 @@ void writeRaw(uint16_t data, int pos) {
 // 7 = 0b0000000100010001
 
 uint16_t get_segments(char ch) {
-    for(int i = 0; i < 10; i++) {
+    for(int i = 0; i < 12; i++) {
         if (segmentData[i].c == ch) {
             return segmentData[i].bits;
         }
