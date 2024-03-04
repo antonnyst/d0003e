@@ -5,13 +5,13 @@
 // Pulse method
 // Toggles the pulse with writer object
 int pulse(PulseGenerator *self) {
-    
+
     // Toggle pulse bit
     ASYNC(&(self->writer), toggle_port_e, self->bit);
     
     // Call again if generator is still enabled
     if (self->hz > 0) {
-        AFTER(CURRENT_OFFSET() + MSEC(1000/(self->hz)), self, pulse, NULL);
+        AFTER(CURRENT_OFFSET() + USEC(500000/(self->hz)), self, pulse, NULL);
     } else {
         // Generator has been disabled so we set the bit to zero
         ASYNC(&(self->writer), zero_port_e, self->bit);
@@ -22,13 +22,13 @@ int pulse(PulseGenerator *self) {
 
 // Increment method
 int increment(PulseGenerator *self, int *arg) {
-    //writeLong(66);
-
     if (self->hz == 0) {
         // Starting an disabled generator
         ASYNC(self, pulse, NULL);
     }
-    self->hz = self->hz + 1;
+    if (self->hz < 99) {
+        self->hz = self->hz + 1;
+    }
     return 0;
 }
 

@@ -1,61 +1,46 @@
+#include <avr/io.h>
 #include "joystick.h"
 #include "TinyTimber.h"
 #include "gui.h"
 #include "lcd.h"
 
-// 
-// Object Joystick 
-// int = Up inget down
-// Msg last_event
+void joystick_init() {
+    PORTB |= 0b11010000;
+    PORTE |= 0b00001100;
 
-// repeat
-// continously check enum
+    PCMSK1 = 0b11010000;
+    PCMSK0 = 0b00001100;
 
-// joystick_up
-// send start repeat in delay
-//
-// joystick_release
-// abort last_event
-//
-// joystick_down
-// send start repeat in delay
-//
+    EIMSK = 0b11000000;
+}
 
-#define JOYSTICK_REPEAT MSEC(50)
-#define JOYSTICK_DELAY  MSEC(500)
+int start_joystick(Joystick *self) {
+    joystick_init();
+    ASYNC(&(self->gui), start_gui, NULL);
+}
 
-int repeat(Joystick *self) {
-    
-    if (self->state == 1) {
-        ASYNC(&(self->gui), joystickUp, NULL);
-    } else if (self->state == 2) {
-        ASYNC(&(self->gui), joystickDown, NULL);
+int joystickEventPCINT0(Joystick *self){
+    if (!(PINE & 0b00000100)){
+        ASYNC(&(self->gui), joystickLeft, NULL);
+        return 0;
+    } else if (!(PINE & 0b00001000)){
+        ASYNC(&(self->gui), joystickRight, NULL);
+        return 0;
+    } 
+}
+
+int joystickEventPCINT1(Joystick *self){
+    if (!(PINB & 0b10000000)){ // joystick is down
+        ASYNC(&(self->gui), joystick_down, NULL);
+        return 0;
+    } else if (!(PINB & 0b01000000)){
+        ASYNC(&(self->gui), joystick_up, NULL);
+        return 0;
+    } else if (!(PINB & 0b00010000)){
+        ASYNC(&(self->gui), joystickPress, NULL);
+        return 0;
+    } else {
+        ASYNC(&(self->gui), joystick_release, NULL);
+        return 0;
     }
-
-    if (self->state > 0) {
-        AFTER(CURRENT_OFFSET() + JOYSTICK_REPEAT, self, repeat, NULL);
-    }
-    return 0;
 }
-
-int joystick_up(Joystick *self) {
-    self->state = 1;
-    self->last_event = AFTER(CURRENT_OFFSET()+JOYSTICK_DELAY, self, repeat, NULL);
-    ASYNC(&(self->gui), joystickUp, NULL);
-    return 0;
-}
-
-int joystick_down(Joystick *self) {
-    self->state = 2;
-    self->last_event = AFTER(CURRENT_OFFSET()+JOYSTICK_DELAY, self, repeat, NULL);
-    ASYNC(&(self->gui), joystickDown, NULL);
-    return 0;
-}
-
-int joystick_release(Joystick *self) {
-    self->state = 0;
-    ABORT(self->last_event);
-    self->last_event = NULL;
-    return 0;
-}
-

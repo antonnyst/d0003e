@@ -1,25 +1,29 @@
 #include <stdbool.h>
 #include "pulsegenerator.h"
 #include "TinyTimber.h"
-#include "joystick.h"
 
 #ifndef GUI_H
 #define GUI_H
 
-#define initGUI(left, right) { initObject(), 1, left, right, NULL}
+#define initGUI(left, right) { initObject(), 0, left, right, 0, NULL}
 
 typedef struct {
     Object super;
     int active; 
     PulseGenerator left;
     PulseGenerator right;
-    Joystick *joystick;
+    int state;
+    Msg last_event;
 } GUI;
 
-int init(GUI *self);
-int joystickEvent(GUI *self);
+int start_gui(GUI *self);
 
-int joystickDown(GUI *self);
-int joystickUp(GUI *self);
+int joystick_up(GUI *self);
+int joystick_down(GUI *self);
+int joystick_release(GUI *self);
+
+int joystickLeft(GUI *self);
+int joystickRight(GUI *self);
+int joystickPress(GUI *self);
 
 #endif

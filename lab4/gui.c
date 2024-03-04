@@ -5,8 +5,10 @@
 #include "TinyTimber.h"
 #include "joystick.h"
 
-#define GUI_UPDATE_FREQ MSEC(500)
+#define GUI_UPDATE_FREQ MSEC(50)
 
+#define JOYSTICK_REPEAT MSEC(100)
+#define JOYSTICK_DELAY  MSEC(600)
 
 // UPDATE METHOD
 // Updates the screen with actual values by checking with the objects
@@ -20,34 +22,21 @@ int update(GUI *self, int *arg) {
     printAt(right_hz, 4);
 
     if (self->active == 0) {
-        LCDDR0 |= 0b00000010;
+        LCDDR0 |= 0b00100010;
     } else if (self->active == 1) {
-        LCDDR2 |= 0b00100000;        
+        LCDDR2 |= 0b00100010;        
     }
 
     AFTER(CURRENT_OFFSET() + GUI_UPDATE_FREQ, self, update, 0);
     return 0;
 }
 
-void joystick_init() {
-    PORTB |= 0b11010000;
-    PORTE |= 0b00001100;
 
-    PCMSK1 = 0b11010000;
-    PCMSK0 = 0b00001100;
-
-    EIMSK = 0b11000000;
-}
 
 // INIT METHOD
 // runs lcd_init() and starts update method
-int init(GUI *self) {
+int start_gui(GUI *self) {
     lcd_init();
-    joystick_init();
-
-    Joystick j = initJoystick(self);
-
-    self->joystick = &j;
 
     // Pin init
     DDRE = 0b11110011;
@@ -146,37 +135,44 @@ int joystickPress(GUI *self){
 
 
 // it works
-int joystickEvent(GUI *self){
-    if (!(PINB & 0b10000000)){ // joystick is down
-        writeLong(22);
-        ASYNC(self->joystick, joystick_down, NULL);
-        return 0;
-    } else if (PINB == 0b11111111 || PINE == 0b11111111) {
-        //ASYNC(self->joystick, joystick_release, NULL);
+
+int repeat(GUI *self) {
+    
+    if (self->state == 1) {
+        ASYNC(self, joystickUp, NULL);
+    } else if (self->state == 2) {
+        ASYNC(self, joystickDown, NULL);
     }
 
-    if (!(PINB & 0b01000000)){
-        writeLong(11);
-        ASYNC(self->joystick, joystick_up, NULL);
-        return 0;
-    } else if (PINB == 0b11111111 || PINE == 0b11111111) {
-        //ASYNC(self->joystick, joystick_release, NULL);
-    }
-
-    if (!(PINE & 0b00000100)){
-        joystickLeft(self);
-        return 0;
-    }
-
-    if (!(PINE & 0b00001000)){
-        joystickRight(self);
-        return 0;
-    }
-
-    if (!(PINB & 0b00010000)){
-        joystickPress(self);
-        return 0;
+    if (self->state > 0) {
+        AFTER(CURRENT_OFFSET() + JOYSTICK_REPEAT, self, repeat, NULL);
     }
     return 0;
 }
-    
+
+int joystick_up(GUI *self) {
+    if (self->state == 0) {
+        self->state = 1;
+        self->last_event = AFTER(CURRENT_OFFSET()+JOYSTICK_DELAY, self, repeat, NULL);
+        ASYNC(self, joystickUp, NULL);
+        return 0;
+    }
+}
+
+int joystick_down(GUI *self) {
+    if (self->state == 0) {
+        self->state = 2;
+        self->last_event = AFTER(CURRENT_OFFSET()+JOYSTICK_DELAY, self, repeat, NULL);
+        ASYNC(self, joystickDown, NULL);
+    }
+    return 0;
+}
+
+int joystick_release(GUI *self) {
+    if (self->state > 0) {
+        self->state = 0;
+        ABORT(self->last_event);
+        self->last_event = NULL;
+    }
+    return 0;
+}
