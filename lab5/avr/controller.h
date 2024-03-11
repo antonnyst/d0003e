@@ -12,7 +12,7 @@ enum Direction {
     NONE,
     NORTH,
     SOUTH
-}
+};
 
 typedef struct {
     Object super;
@@ -24,7 +24,6 @@ typedef struct {
     int sent;
     int wait;
     enum Direction direction;
-
 } Controller;
 
 int start_controller(Controller *self);
@@ -34,7 +33,5 @@ int handle_recieve(Controller *self);
 int get_north_amt(Controller *self);
 int get_bridge_amt(Controller *self);
 int get_south_amt(Controller *self);
-
-enum ControllerState get_state(Controller *self);
 
 #endif

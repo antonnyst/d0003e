@@ -1,4 +1,5 @@
 #include "TinyTimber.h"
+#include "controller.h"
 
 #ifndef INTERRUPT_H
 #define INTERRUPT_H
@@ -7,7 +8,7 @@
 
 typedef struct {
     Object super; 
-    Object controller;
+    Controller *controller;
 } InterruptHandler;
 
 int handle_usart_rx(InterruptHandler *self);

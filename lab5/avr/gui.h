@@ -9,7 +9,7 @@
 
 typedef struct {
     Object super;
-    Controller controller;
+    Controller *controller;
 } GUI;
 
 int start_gui(GUI *self);

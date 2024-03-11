@@ -1,49 +1,75 @@
 #include "controller.h"
 #include "serial.h"
+#include "lcd.h"
 
 #define IDLE_DELAY MSEC(500)
 #define WAIT_DELAY MSEC(50)
 
 #define STACK_CAR_AMT 10
 
-#define CAR_DELAY SEC(1)
-#define CAR_TRAVERSAL_TIME SEC(5)
+#define CAR_DELAY MSEC(1000)
+#define CAR_TRAVERSAL_TIME MSEC(5000)
 
-int start_controller(Controller *self) {
+// State machine using events?
+int idle(Controller *self);
+int wait_empty(Controller *self);
+int sending(Controller *self);
+int send_car(Controller *self);
+int wait_car_entry(Controller *self);
 
+int get_cars(Controller *self, enum Direction direction) {
+    switch (direction) {
+        case NONE:
+            return 0;
+        case NORTH:
+            return self->north_amt;
+        case SOUTH:
+            return self->south_amt;
+    }
 }
 
-int handle_recieve(Controller *self) {
 
-    // Read data
-    int data = SYNC(&(self->serial), serial_read, NULL);
-
-    if (input & 0b0001) { // Bit 0: Northbound car arrival sensor activated
-        self->north_amt++;
-    }
-
-    if (input & 0b0100) { // Bit 2: Southbound car arrival sensor activated
-        self->south_amt++;
-    }
-
-    if (input & 0b0010) { // Bit 1: Northbound bridge entry sensor activated
-        self->bridge_amt++;
-        self->sent++;
-        AFTER(CURRENT_OFFSET() + CAR_TRAVERSAL_TIME, self, car_passed, NULL);
-    } 
-    
-    if (input & 0b1000) { // Bit 3: Southbound bridge entry sensor activated
-        self->bridge_amt++;
-        self->sent++;
-        AFTER(CURRENT_OFFSET() + CAR_TRAVERSAL_TIME, self, car_passed, NULL);
-    }
-
-    return 0;
+int start_controller(Controller *self) {
+    ASYNC(&(self->serial), start_serial, NULL);
+    ASYNC(self, idle, NULL);
+    //self->north_amt = 5;
+    //printAt(get_cars(self, NORTH), 4);
 }
 
 int car_passed(Controller *self) {
     self->bridge_amt--;
     return 0;
+}
+
+int handle_recieve(Controller *self) {
+    //writeLong(88);
+    // Read data
+    int data = SYNC(&(self->serial), serial_read, NULL);
+
+    if (data & 0b0001) { // Bit 0: Northbound car arrival sensor activated
+        self->north_amt++;
+    }
+
+    if (data & 0b0100) { // Bit 2: Southbound car arrival sensor activated
+        self->south_amt++;
+    }
+
+    if (data & 0b0010) { // Bit 1: Northbound bridge entry sensor activated
+        self->north_amt--;
+        self->bridge_amt++;
+        self->sent++;
+        AFTER(CURRENT_OFFSET() + CAR_TRAVERSAL_TIME, self, car_passed, NULL);
+    } 
+    
+    if (data & 0b1000) { // Bit 3: Southbound bridge entry sensor activated
+        self->south_amt--;
+        self->bridge_amt++;
+        self->sent++;
+        AFTER(CURRENT_OFFSET() + CAR_TRAVERSAL_TIME, self, car_passed, NULL);
+    }
+
+    return 0;
+    //*/
 }
 
 enum Direction invert_direction(enum Direction direction) {
@@ -54,32 +80,22 @@ enum Direction invert_direction(enum Direction direction) {
             return SOUTH;
         case 2:
             return NORTH;
-    }}
-
-int get_cars(enum Direction direction) {
-    switch (direction) {
-        case 0:
-            return 0;
-        case 1:
-            return self->north_amt;
-        case 2:
-            return self->south_amt;
     }
 }
 
 
-// State machine using events?
-int idle(Controller *self);
-int wait_empty(Controller *self);
-int sending(Controller *self);
-int send_car(Controller *self);
 
 
 int idle(Controller *self) {
     // Switch based on which direction we sent cars last time
+
+    self->sent = 0;
+    
+    //printAt(11, 4);
+
     switch (self->direction) {
-        case 0:
-        case 1:
+        case NONE:
+        case NORTH:
             // NONE or NORTH
             if (self->south_amt > 0) {
                 self->direction = SOUTH;
@@ -92,7 +108,7 @@ int idle(Controller *self) {
                 return 0;
             }
             break;
-        case 2:
+        case SOUTH:
             // SOUTH
             if (self->north_amt > 0) {
                 self->direction = NORTH;
@@ -113,6 +129,8 @@ int idle(Controller *self) {
 }
 
 int wait_empty(Controller *self) {
+    //printAt(22, 4);
+
     if (self->bridge_amt == 0) {
         ASYNC(self, idle, NULL);
     } else {
@@ -123,7 +141,25 @@ int wait_empty(Controller *self) {
 
 // State where we send cars
 int sending(Controller *self) {
-    if (get_cars(self->direction) == 0) {   
+    //printAt(33, 4);
+
+    int cars = 0;
+    int other_cars = 0;
+
+    switch (self->direction) {
+        case NONE:
+            break;
+        case NORTH:
+            cars = self->north_amt;
+            other_cars = self->south_amt;
+            break;
+        case SOUTH:
+            cars = self->south_amt;
+            other_cars = self->north_amt;
+            break;
+    }
+
+    if (cars == 0) {   
         // No more cars to send
         ASYNC(self, wait_empty, NULL);
         return 0;
@@ -131,7 +167,7 @@ int sending(Controller *self) {
 
     if (self->sent > STACK_CAR_AMT) { 
         // Check if there are cars waiting in the other direciton
-        if (get_cars(invert_direction(self->direciton)) > 0) {
+        if (other_cars > 0) {
             ASYNC(self, wait_empty, NULL);
             return 0;
         }
@@ -146,44 +182,48 @@ int sending(Controller *self) {
 
 int send_car(Controller *self) {
 
+    //printAt(66, 4);
+
     // Send green light
     int data = 0;
-    switch(self->direciton) {
+    switch(self->direction) {
         case 0:
             break;
         case 1:
-            data = 0b0001;
+            data = 0b0001; // 1
             break;
         case 2:
-            data = 0b0100;
+            data = 0b0100; // 4
             break;
     }
 
-    SYNC(&(self->serial), serial_write, data);
-    
-    self->wait = self.sent;
-    SYNC(self, wait_car_entry, NULL);
+    ASYNC(&(self->serial), serial_write, data);
+
+    self->wait = self->sent;
+    ASYNC(self, wait_car_entry, NULL);
     return 0;
 }
 
 int wait_car_entry(Controller *self) {
+    //printAt(77, 4);
+
     if (self->sent > self->wait) {
         // We have sent an car, red light and return to sending after waiting the car delay
 
         int data = 0;
-        switch(self->direciton) {
+        switch(self->direction) {
             case 0:
                 break;
             case 1:
-                data = 0b0010;
+                data = 0b0010; // 2
                 break;
             case 2:
-                data = 0b1000;
+                data = 0b1000; // 8
                 break;
         }
 
         ASYNC(&(self->serial), serial_write, data);
-        
+
         AFTER(CURRENT_OFFSET() + CAR_DELAY, self, sending, NULL);
     } else {
         // Keep waiting...

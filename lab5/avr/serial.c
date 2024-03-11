@@ -1,5 +1,4 @@
 #include <avr/io.h>
-#include <stdint.h>
 #include "serial.h"
 #include "TinyTimber.h"
 
@@ -9,8 +8,10 @@
 
 int start_serial(Serial *self) {
     /* Set baud rate */
-    UBRR0H = (unsigned char)(MYUBRR>>8);
-    UBRR0L = (unsigned char)MYUBRR;
+    unsigned int ubrr = MYUBRR;
+
+    UBRR0H = (unsigned char)(ubrr>>8);
+    UBRR0L = (unsigned char)ubrr;
     /* Enable receiver and transmitter + reciever interrupts */
     UCSR0B = (1<<RXEN0) | (1<<TXEN0) | (1<<RXCIE0);
     /* Set frame format: 8data, 1stop bit */
@@ -19,7 +20,7 @@ int start_serial(Serial *self) {
     return 0;
 }
 
-int serial_write(Serial *self, uint8_t data) {
+int serial_write(Serial *self, int data) {
 
     // Wait until we can write
     while ((UCSR0A & 0b00100000) == 0) {}
